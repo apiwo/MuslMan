@@ -73,8 +73,9 @@ pkgmgr_install_hint() {
 }
 
 detect_init_system() {
-    # Best-effort. Prints: systemd openrc runit s6 unknown
+    # Best-effort. Prints: systemd openrc runit s6 dinit unknown
     if [ -d /run/systemd/system ]; then echo systemd; return; fi
+    if [ -d /etc/dinit.d ] || command -v dinitctl >/dev/null 2>&1; then echo dinit; return; fi
     if command -v rc-service >/dev/null 2>&1 || [ -d /etc/init.d ] && [ -f /etc/inittab ] && command -v openrc >/dev/null 2>&1; then
         echo openrc; return
     fi

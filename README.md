@@ -91,7 +91,7 @@ MuslMan's logic is about.
    | File | Purpose |
    |---|---|
    | `/etc/modprobe.d/muslman-nvidia.conf` | blacklist nouveau, `nvidia-drm modeset=1` |
-   | `/etc/modules-load.d/muslman-nvidia.conf` (or OpenRC `/etc/conf.d/modules`) | autoload the modules at boot |
+   | `/etc/modules-load.d/muslman-nvidia.conf` (or OpenRC `/etc/conf.d/modules`, or `/etc/dinit.d/muslman-nvidia` on dinit) | autoload the modules at boot |
    | `/etc/X11/xorg.conf.d/20-muslman-nvidia.conf` | X11/XWayland GLX driver path |
    | `/usr/share/glvnd/egl_vendor.d/10_nvidia.json` | EGL vendor (libglvnd) |
    | `/etc/vulkan/icd.d/nvidia_icd.json` | Vulkan ICD |

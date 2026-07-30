@@ -38,7 +38,7 @@ install_configs() {
     local init
     init="$(detect_init_system)"
     case "$init" in
-        systemd|unknown)
+        systemd)
             ensure_dir /etc/modules-load.d
             install_managed_file /etc/modules-load.d/muslman-nvidia.conf \
                 "$(render_template "$tmpl/modules-load.conf.tmpl")"
@@ -57,8 +57,21 @@ install_configs() {
                 warn "could not find /etc/modules-load.d or /etc/conf.d/modules -- add 'nvidia nvidia-modeset nvidia-drm nvidia-uvm' to your init system's module autoload list manually"
             fi
             ;;
+        dinit)
+            install_managed_file /etc/dinit.d/muslman-nvidia \
+                "$(render_template "$tmpl/dinit-service.tmpl")"
+            if [ -d /etc/dinit.d/boot.d ]; then
+                if [ ! -e /etc/dinit.d/boot.d/muslman-nvidia ]; then
+                    ln -s ../muslman-nvidia /etc/dinit.d/boot.d/muslman-nvidia
+                    manifest_add file /etc/dinit.d/boot.d/muslman-nvidia
+                fi
+                ok "installed dinit service and linked it into boot.d -- modules will autoload at boot"
+            else
+                warn "installed /etc/dinit.d/muslman-nvidia but couldn't find /etc/dinit.d/boot.d to hook it into boot automatically -- run 'dinitctl enable muslman-nvidia' (or your setup's equivalent) to wire it in, then confirm with 'dinitctl list'"
+            fi
+            ;;
         *)
-            warn "unrecognized init system ('$init') -- add 'nvidia nvidia-modeset nvidia-drm nvidia-uvm' to your module autoload config manually"
+            warn "unrecognized or undetected init system ('$init') -- modules will NOT autoload at boot automatically. For now, run 'modprobe -a nvidia nvidia-modeset nvidia-drm nvidia-uvm' after each boot, and wire that into your init system's module-loading mechanism manually."
             ;;
     esac
 }

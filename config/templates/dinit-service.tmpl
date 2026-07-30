@@ -1,0 +1,9 @@
+# Installed by MuslMan -- https://github.com/apiwo/MuslMan
+# dinit service: autoload the NVIDIA kernel modules at boot.
+# Enabled by symlinking this into /etc/dinit.d/boot.d/ (Chimera Linux's
+# convention for adding a service as a dependency of "boot"); if your
+# dinit setup uses a different mechanism, run this manually instead:
+#   dinitctl enable muslman-nvidia
+type = scripted
+command = /sbin/modprobe -a nvidia nvidia-modeset nvidia-drm nvidia-uvm
+restart = false
