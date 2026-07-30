@@ -1,0 +1,9 @@
+# Installed by MuslMan -- https://github.com/apiwo/MuslMan
+# Blacklist the open-source nouveau driver and enable DRM kernel modesetting
+# for the proprietary NVIDIA modules (required for Wayland compositors).
+
+blacklist nouveau
+options nouveau modeset=0
+
+options nvidia-drm modeset=1
+options nvidia NVreg_PreserveVideoMemoryAllocations=1

@@ -1,0 +1,17 @@
+# Runtime cache: downloaded rootfs, NVIDIA .run installers, extracted
+# payloads, build outputs. Never committed -- rebuilt/refetched on demand.
+# (The real cache lives in $MUSLMAN_CACHE, default ~/.cache/muslman --
+# these patterns just guard against anything stray landing in-repo.)
+.cache/
+*.run
+*.tar.gz
+*.tar.xz
+*.apk
+*.ko
+*.o
+*.so
+*.so.*
+
+# Editor/OS cruft
+.DS_Store
+*.swp

@@ -1,0 +1,8 @@
+# Installed by MuslMan -- https://github.com/apiwo/MuslMan
+# Mirrors NVIDIA's own standard 70-nvidia.rules: create /dev/nvidia* device
+# nodes on demand when the kernel modules load, via the patched
+# nvidia-modprobe helper.
+
+KERNEL=="nvidia", RUN+="@@PREFIX@@/nvidia/bin/nvidia-modprobe -c0 -u"
+KERNEL=="nvidia_uvm", RUN+="@@PREFIX@@/nvidia/bin/nvidia-modprobe -c0 -u -m"
+KERNEL=="card*", SUBSYSTEM=="drm", DRIVERS=="nvidia", RUN+="@@PREFIX@@/nvidia/bin/nvidia-modprobe -c0 -u"

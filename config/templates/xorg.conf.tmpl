@@ -1,0 +1,15 @@
+# Installed by MuslMan -- https://github.com/apiwo/MuslMan
+# Points Xorg at the patched nvidia_drv.so under the MuslMan prefix.
+# Only relevant if you run X11/XWayland; native Wayland compositors
+# (Sway, etc.) use the EGL/GBM/DRM path instead and don't need this.
+
+Section "Module"
+    Load "glx"
+EndSection
+
+Section "Device"
+    Identifier  "MuslMan NVIDIA"
+    Driver      "nvidia"
+    ModulePath  "@@PREFIX@@/nvidia/xorg-modules"
+    ModulePath  "/usr/lib/xorg/modules"
+EndSection

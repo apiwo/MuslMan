@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# MuslMan -- full proprietary NVIDIA driver acceleration on any musl libc
+# Linux distro (X11 + Wayland), with all compiling sandboxed via bubblewrap.
+#
+#   git clone https://github.com/apiwo/MuslMan
+#   cd MuslMan
+#   sudo ./muslman doctor
+#   sudo ./muslman install
+#
+# See README.md for the full architecture and safety notes.
+set -uo pipefail
+
+SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# shellcheck source=lib/common.sh
+source "$SELF_DIR/lib/common.sh"
+# shellcheck source=lib/distro.sh
+source "$SELF_DIR/lib/distro.sh"
+# shellcheck source=lib/sandbox.sh
+source "$SELF_DIR/lib/sandbox.sh"
+# shellcheck source=lib/driver.sh
+source "$SELF_DIR/lib/driver.sh"
+# shellcheck source=lib/glibc-compat.sh
+source "$SELF_DIR/lib/glibc-compat.sh"
+# shellcheck source=lib/kmod.sh
+source "$SELF_DIR/lib/kmod.sh"
+# shellcheck source=lib/userspace.sh
+source "$SELF_DIR/lib/userspace.sh"
+# shellcheck source=lib/egl-integration.sh
+source "$SELF_DIR/lib/egl-integration.sh"
+# shellcheck source=lib/install.sh
+source "$SELF_DIR/lib/install.sh"
+# shellcheck source=lib/uninstall.sh
+source "$SELF_DIR/lib/uninstall.sh"
+# shellcheck source=lib/status.sh
+source "$SELF_DIR/lib/status.sh"
+# shellcheck source=lib/doctor.sh
+source "$SELF_DIR/lib/doctor.sh"
+
+usage() {
+    cat <<EOF
+MuslMan v$MUSLMAN_VERSION -- full NVIDIA driver acceleration for musl distros
+
+Usage: $0 <command> [options]
+
+Commands:
+  doctor              Check host prerequisites (never installs anything)
+  install             Build + install the full driver stack (needs root)
+  uninstall           Remove everything MuslMan installed (needs root)
+  status              Show current install / module / device-node state
+  build               Run the sandboxed build steps only, skip host install
+  help                Show this message
+
+Options (install/build):
+  --driver-version X.Y.Z   Use this NVIDIA driver version instead of latest
+  --driver-file PATH       Use a local .run installer instead of downloading
+  --rootfs-tarball PATH    Use this tarball as the sandbox build rootfs
+                           instead of the default Alpine minirootfs
+  -y, --yes                Assume yes to any confirmation prompts
+
+Environment overrides: MUSLMAN_PREFIX, MUSLMAN_CACHE, MUSLMAN_STATE_DIR,
+MUSLMAN_DRIVER_VERSION, MUSLMAN_DRIVER_FILE, MUSLMAN_ROOTFS_TARBALL,
+MUSLMAN_ALPINE_VERSION, MUSLMAN_GLIBC_COMPAT_VERSION,
+MUSLMAN_EGL_WAYLAND_VERSION, MUSLMAN_EGL_GBM_VERSION, MUSLMAN_YES.
+EOF
+}
+
+cmd="${1:-help}"
+[ $# -gt 0 ] && shift
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --driver-version) MUSLMAN_DRIVER_VERSION="$2"; shift 2 ;;
+        --driver-file)    MUSLMAN_DRIVER_FILE="$2"; shift 2 ;;
+        --rootfs-tarball) MUSLMAN_ROOTFS_TARBALL="$2"; shift 2 ;;
+        -y|--yes)         MUSLMAN_YES=1; shift ;;
+        *) die "unknown option: $1 (see '$0 help')" ;;
+    esac
+done
+
+case "$cmd" in
+    doctor)    muslman_doctor ;;
+    install)   muslman_install ;;
+    uninstall) muslman_uninstall ;;
+    status)    muslman_status ;;
+    build)
+        require_root
+        [ "$(detect_libc)" = "musl" ] || die "refusing to run on non-musl system (see 'doctor')"
+        ver="$(driver_resolve_version)"
+        runfile="$(driver_download "$ver")"
+        payload="$MUSLMAN_CACHE/payload-$ver"
+        driver_extract "$runfile" "$payload"
+        ksrc="$(driver_kernel_source_dir "$payload")"
+        kodir="$MUSLMAN_CACHE/kmod-out-$ver"
+        kmod_build "$ksrc" "$kodir"
+        glibc_extracted="$(glibc_compat_fetch_and_extract)"
+        glibc_installed="$(glibc_compat_install "$glibc_extracted")"
+        staging="$MUSLMAN_CACHE/userspace-staging-$ver"
+        rm -rf "$staging"
+        userspace_collect "$payload" "$staging"
+        userspace_patchelf "$staging" "$glibc_installed"
+        egl_integration_build >/dev/null
+        ok "build-only run complete; nothing installed to the host. Artifacts are under $MUSLMAN_CACHE"
+        ;;
+    help|-h|--help) usage ;;
+    *) usage; die "unknown command: $cmd" ;;
+esac
