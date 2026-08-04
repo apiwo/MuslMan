@@ -1,7 +1,7 @@
 # MuslMan
 
 Full proprietary NVIDIA driver acceleration — kernel modules, OpenGL/EGL,
-Vulkan, CUDA, X11 **and** Wayland — on any musl libc Linux distro (Alpine,
+Vulkan, CUDA, X11 **and** Wayland on any musl libc Linux distro (Alpine,
 Void musl, Gentoo's musl profile, Chimera Linux, Adélie, or anything else
 using musl, detected generically rather than from a distro allowlist).
 
