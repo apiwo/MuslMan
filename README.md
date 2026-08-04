@@ -128,31 +128,6 @@ Useful options: `--driver-version X.Y.Z`, `--driver-file /path/to.run`,
   followed and for the download/build steps — actual compiling is
   network-isolated regardless).
 
-## Honest status
-
-This was engineered from documented, real-world-precedented building
-blocks — Alpine's own `alpine-pkg-glibc` compatibility package,
-`patchelf`-based ABI bridging (the same technique the Nix and Steam
-Runtime ecosystems use to run foreign-libc binaries), and NVIDIA's own
-open-source `egl-wayland`/`egl-gbm` projects. The bubblewrap sandbox
-mechanics, the Alpine rootfs bootstrap, and the offline
-compile/network-isolation boundary were all exercised for real during
-development (see commit history). **The end-to-end result has not been
-tested against real musl+NVIDIA hardware** — this development machine is
-glibc and has no spare NVIDIA musl box to validate against. Before
-relying on this:
-
-- Test on a machine you can afford to have not boot cleanly the first
-  time, or make sure you have a fallback (a `nomodeset` / nouveau boot
-  option in your bootloader, or a spare TTY / SSH access that doesn't
-  depend on the GPU driver working).
-- If something goes wrong, `sudo ./muslman uninstall` reverses every file
-  MuslMan wrote and restores anything it backed up.
-- If your package manager or init system isn't yet handled well by
-  `lib/distro.sh`, `muslman doctor` will tell you what it couldn't detect
-  rather than silently guessing — please open an issue/PR with what your
-  distro needs.
-
 ## License
 
 MIT — see [LICENSE](LICENSE).
